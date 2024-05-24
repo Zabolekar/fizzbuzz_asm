@@ -1,14 +1,15 @@
 ; Technically, three or more digits are not supported,
 ; however, 100 prints 'buzz' so it's ok. But 101 won't work.
 
-%define output_length r15
-%define zero r8w ; always 0
+%define zero di ; always 0
 %define zero_char si ; always '0'
-%define literal_has_been_used r13b ; either 0 or 1
+
+%define output_length r15
+%define literal_has_been_used r14b ; either 0 or 1
 
 %macro literal 1
-    mov ebx, dword [%1]
-    mov dword [output_buffer + output_length], ebx
+    mov r13d, dword [%1]
+    mov dword [output_buffer + output_length], r13d
     add output_length, 4
     mov literal_has_been_used, 1
 %endmacro
@@ -30,30 +31,30 @@ section .bss
 section .text
 global  _start
 _start:
-    xor output_length, output_length
-    xor r12w, r12w ; i % 3
-    xor r11w, r11w ; i % 5
     xor zero, zero
+    mov zero_char, '0'
+    xor output_length, output_length
+    xor ax, ax ; i % 3
+    xor bx, bx ; i % 5
     mov cx, '0' ; first digit (as char, not as number)
     mov dx, '0' ; second digit (as char, not as number)
-    mov zero_char, '0'
 loop:    
-    inc r12w
-    cmp r12w, 3
-    cmove r12w, zero
-    inc r11w
-    cmp r11w, 5
-    cmove r11w, zero
+    inc ax
+    cmp ax, 3
+    cmove ax, zero
+    inc bx
+    cmp bx, 5
+    cmove bx, zero
     inc dx
     cmp dx, '0' + 10
     cmove dx, zero_char
 
     xor literal_has_been_used, literal_has_been_used
-    cmp r12w, 0
+    test ax, ax
     jne after_fizz
     literal fizz
 after_fizz:
-    cmp r11w, 0
+    test bx, bx
     jne after_buzz
     literal buzz
 after_buzz:
@@ -66,9 +67,9 @@ after_buzz:
 second_digit:
     char dl
 finally:
-    lea rbx, [rcx + 1]
+    lea r13, [rcx + 1]
     cmp dx, '0'
-    cmove cx, bx
+    cmove cx, r13w
     cmp cx, '0' + 10 ; we have reached 100
     je done
     char ' '
