@@ -4,6 +4,7 @@
 
 %define output_length r15
 %define i r14w
+%define zero r8w
 %define literal_has_been_used r13b ; either 0 or 1
 
 %macro literal 1
@@ -16,13 +17,6 @@
 %macro char 1
     mov byte [output_buffer + output_length], %1
     inc output_length
-%endmacro
-
-%macro divmod 1
-    xor dx, dx
-    mov ax, i
-    mov bx, %1
-    div bx
 %endmacro
 
 section .data
@@ -38,32 +32,52 @@ section .text
 global  _start
 _start:
     xor output_length, output_length
-    xor i, i
+    xor i, i ; TODO: can be ax
+    xor r12w, r12w ; i % 3
+    xor r11w, r11w ; i % 5
+    xor r10w, r10w ; i % 10
+    xor r9w, r9w ; i / 10
+    xor zero, zero
 loop:
     inc i
+    
+    inc r12w
+    cmp r12w, 3
+    cmove r12w, zero
+    inc r11w
+    cmp r11w, 5
+    cmove r11w, zero
+    inc r10w
+    cmp r10w, 10 ; TODO: can be dx
+    cmove r10w, zero
+
     xor literal_has_been_used, literal_has_been_used
-    divmod 3
-    cmp dx, 0
+    cmp r12w, 0
     jne after_fizz
     literal fizz
 after_fizz:
-    divmod 5
-    cmp dx, 0
+    cmp r11w, 0
     jne after_buzz
     literal buzz
 after_buzz:
     cmp literal_has_been_used, 1
     je finally
-    divmod 10
+
+    mov ax, r9w
     cmp ax, 0
     je second_digit
 ; first digit
     add ax, '0'
     char al
 second_digit:
-    add dx, '0'
+    lea rdx, [r10 + '0']
     char dl
 finally:
+    mov rcx, r9
+    inc rcx
+    cmp r10w, 0
+    cmove r9, rcx
+
     cmp i, MAX
     je done
     char ' '
