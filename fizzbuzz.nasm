@@ -26,39 +26,39 @@ global  _start
 _start:
     mov zero_char, '0'
     xor output_length, output_length
-    xor ax, ax ; i % 3
-    xor bx, bx ; i % 5
-    mov cx, '0' ; first digit (as char, not as number)
-    mov dx, '0' ; second digit (as char, not as number)
+    xor al, al ; i % 3
+    xor bl, bl ; i % 5
+    mov cl, '0' ; first digit (as char, not as number)
+    mov dl, '0' ; second digit (as char, not as number)
 loop:
-    inc ax
-    inc bx
-    inc dx
+    inc al
+    inc bl
+    inc dl
     inc print_number
-    cmp ax, 3
+    cmp al, 3
     jne after_fizz
-    xor ax, ax
+    xor al, al
     literal "FIZZ"
 after_fizz:
-    cmp bx, 5
+    cmp bl, 5
     jne after_buzz
-    xor bx, bx
+    xor bl, bl
     literal "BUZZ"
 after_buzz:
     test print_number, print_number
     je finally
-    cmp cx, '0'
+    cmp cl, '0'
     je second_digit
 ; first digit
     char cl
 second_digit:
     char dl
 finally:
-    lea r13, [rcx + 1]
-    cmp dx, '0' + 10
+    cmp dl, '0' + 10
     cmove dx, zero_char
-    cmove cx, r13w
-    cmp cx, '0' + 10 ; we have reached 100
+    sete bpl
+    add cl, bpl
+    cmp cl, '0' + 10 ; we have reached 100
     je done
     char ' '
     jmp loop
