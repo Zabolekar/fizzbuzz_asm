@@ -2,15 +2,14 @@
 ; however, 100 prints 'buzz' so it's ok. But 101 won't work.
 
 %define zero_char si ; always '0'
-
+%define print_number dil ; boolean
 %define output_length r15
-%define literal_has_been_used r14b ; either 0 or 1
 
 %macro literal 1
     mov r13d, dword [%1]
     mov dword [output_buffer + output_length], r13d
     add output_length, 4
-    mov literal_has_been_used, 1
+    xor print_number, print_number
 %endmacro
 
 %macro char 1
@@ -36,22 +35,22 @@ _start:
     xor bx, bx ; i % 5
     mov cx, '0' ; first digit (as char, not as number)
     mov dx, '0' ; second digit (as char, not as number)
-loop:    
+loop:
     inc ax
     inc bx
     inc dx
-    xor literal_has_been_used, literal_has_been_used
+    inc print_number
     cmp ax, 3
     jne after_fizz
-    mov ax, 0
+    xor ax, ax
     literal fizz
 after_fizz:
     cmp bx, 5
     jne after_buzz
-    mov bx, 0
+    xor bx, bx
     literal buzz
 after_buzz:
-    cmp literal_has_been_used, 1
+    test print_number, print_number
     je finally
     cmp cx, '0'
     je second_digit
