@@ -1,7 +1,6 @@
 ; Technically, three or more digits are not supported,
 ; however, 100 prints 'buzz' so it's ok. But 101 won't work.
 
-%define zero di ; always 0
 %define zero_char si ; always '0'
 
 %define output_length r15
@@ -31,7 +30,6 @@ section .bss
 section .text
 global  _start
 _start:
-    xor zero, zero
     mov zero_char, '0'
     xor output_length, output_length
     xor ax, ax ; i % 3
@@ -40,22 +38,17 @@ _start:
     mov dx, '0' ; second digit (as char, not as number)
 loop:    
     inc ax
-    cmp ax, 3
-    cmove ax, zero
     inc bx
-    cmp bx, 5
-    cmove bx, zero
     inc dx
-    cmp dx, '0' + 10
-    cmove dx, zero_char
-
     xor literal_has_been_used, literal_has_been_used
-    test ax, ax
+    cmp ax, 3
     jne after_fizz
+    mov ax, 0
     literal fizz
 after_fizz:
-    test bx, bx
+    cmp bx, 5
     jne after_buzz
+    mov bx, 0
     literal buzz
 after_buzz:
     cmp literal_has_been_used, 1
@@ -68,7 +61,8 @@ second_digit:
     char dl
 finally:
     lea r13, [rcx + 1]
-    cmp dx, '0'
+    cmp dx, '0' + 10
+    cmove dx, zero_char
     cmove cx, r13w
     cmp cx, '0' + 10 ; we have reached 100
     je done
