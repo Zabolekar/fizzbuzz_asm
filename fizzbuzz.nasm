@@ -6,8 +6,7 @@
 %define output_length r15
 
 %macro literal 1
-    mov r13d, dword [%1]
-    mov dword [output_buffer + output_length], r13d
+    mov dword [output_buffer + output_length], %1
     add output_length, 4
     xor print_number, print_number
 %endmacro
@@ -16,10 +15,6 @@
     mov byte [output_buffer + output_length], %1
     inc output_length
 %endmacro
-
-section .data
-    fizz db "FIZZ"
-    buzz db "BUZZ"
 
 section .bss
     output_buffer resb 9 * 100 + 1
@@ -43,12 +38,12 @@ loop:
     cmp ax, 3
     jne after_fizz
     xor ax, ax
-    literal fizz
+    literal "FIZZ"
 after_fizz:
     cmp bx, 5
     jne after_buzz
     xor bx, bx
-    literal buzz
+    literal "BUZZ"
 after_buzz:
     test print_number, print_number
     je finally
